@@ -1,9 +1,9 @@
-﻿from djoser.serializers import UserCreateSerializer, UserSerializer
+﻿from django.db import transaction
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
-from rest_framework import serializers
-
 from recipes.models import (FavoriteRecipe, Follow, Ingredient,
                             IngredientRecipe, Recipe, ShoppingList, Tag)
+from rest_framework import serializers
 from users.models import User
 
 
@@ -25,15 +25,12 @@ class CustomUserSerializer(UserSerializer):
 class CustomUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = User
-        fields = ('email', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',
+                  'password')
 
+    @transaction.atomic
     def create(self, validated_data):
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-        )
+        user = User(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
         return user
@@ -153,6 +150,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             })
         return data
 
+    @transaction.atomic
     def add_ingredients(self, ingredients, recipe):
         new_ingredients = [IngredientRecipe(
             recipe=recipe,
@@ -165,6 +163,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for tag in tags:
             recipe.tags.add(tag)
 
+    @transaction.atomic
     def create(self, validated_data):
         author = self.context.get('request').user
         tags = validated_data.pop('tags')
