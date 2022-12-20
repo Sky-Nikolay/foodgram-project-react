@@ -14,6 +14,6 @@ def get_shopping_cart(user):
         ] += ing.amount
     return ([
         f"- {name}: {amount} {measurement_unit}\n"
-        for name, measurement_unit, amount
+        for (name, measurement_unit), amount
         in compressed_ingredients.items()
     ])
