@@ -11,10 +11,10 @@ services:
       - ./.env
 
   backend:
-    # image: skynikolay/foodgram_backend:latest
-    build:
-      context: ../backend
-      dockerfile: Dockerfile   
+    image: skynikolay/foodgram_backend:latest
+    # build:
+    #   context: ../backend
+    #   dockerfile: Dockerfile   
     restart: always
     command: >
       bash -c "python manage.py migrate &&
@@ -31,10 +31,10 @@ services:
       - ./.env
 
   frontend:
-    # image: skynikolay/foodgram_frontend:latest
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile    
+    image: skynikolay/foodgram_frontend:latest
+    # build:
+    #   context: ../frontend
+    #   dockerfile: Dockerfile    
     volumes:
       - ../frontend/:/app/result_build/
 
