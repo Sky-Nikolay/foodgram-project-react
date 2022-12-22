@@ -17,9 +17,9 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
-        if user.is_anonymous:
-            return False
-        return Follow.objects.filter(user=user, author=obj.id).exists()
+        return Follow.objects.filter(
+            user=user,
+            author=obj.id).exists() if user.is_anonymous else False
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -83,10 +83,10 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def _obj_exists(self, recipe, name_class):
         request = self.context.get('request')
-        if not request or request.user.is_anonymous:
-            return False
-        return name_class.objects.filter(user=request.user,
-                                         recipe=recipe).exists()
+        return name_class.objects.filter(
+            user=request.user,
+            recipe=recipe
+            ).exists() if not request or request.user.is_anonymous else False
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -163,19 +163,30 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for tag in tags:
             recipe.tags.add(tag)
 
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     author = self.context.get('request').user
+    #     tags = validated_data.pop('tags')
+    #     ingredients = validated_data.pop('ingredients')
+    #     recipe = Recipe.objects.create(author=author, **validated_data)
+    #     self.add_tags(tags, recipe)
+    #     self.add_ingredients(ingredients, recipe)
+    #     return recipe
+
     @transaction.atomic
     def create(self, validated_data):
-        author = self.context.get('request').user
+        validated_data['author'] = self.context.get('request').user
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(author=author, **validated_data)
-        self.add_tags(tags, recipe)
+        recipe = super().create(validated_data)
         self.add_ingredients(ingredients, recipe)
+        self.add_tags(tags, recipe)
         return recipe
 
     def to_representation(self, instance):
         return representation(self.context, instance, RecipeSerializer)
 
+    @transaction.atomic
     def update(self, recipe, validated_data):
         recipe.tags.clear()
         IngredientRecipe.objects.filter(recipe=recipe).delete()

@@ -14,6 +14,8 @@ def get_shopping_cart(user):
         ] += ing.amount
     return ([
         f"- {name}: {amount} {measurement_unit}\n"
+        # скобки ниже в compressed_ingredients необходимы так как там 2 items
+        # это сделано для атомарности структуры - Ингедиент-ед.измерения
         for (name, measurement_unit), amount
         in compressed_ingredients.items()
     ])

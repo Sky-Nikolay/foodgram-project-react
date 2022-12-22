@@ -67,10 +67,9 @@ class CustomUserViewSet(UserViewSet):
 
     @subscribe.mapping.delete
     def delete_subscribe(self, request, id):
-        user = request.user
         author = get_object_or_404(User, id=id)
         change_subscription = Follow.objects.filter(
-            user=user.id, author=author.id
+            user=request.user.id, author=author.id
         )
         change_subscription.delete()
         return Response(f'Вы больше не подписаны на {author}',
@@ -116,9 +115,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @staticmethod
     def delete_object(request, pk, model):
-        user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
-        object = get_object_or_404(model, user=user, recipe=recipe)
+        object = get_object_or_404(model, user=request.user, recipe=recipe)
         object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
