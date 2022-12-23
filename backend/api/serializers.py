@@ -19,7 +19,7 @@ class CustomUserSerializer(UserSerializer):
         user = self.context.get('request').user
         return Follow.objects.filter(
             user=user,
-            author=obj.id).exists() if user.is_anonymous else False
+            author=obj.id).exists()
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -86,7 +86,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         return name_class.objects.filter(
             user=request.user,
             recipe=recipe
-            ).exists() if not request or request.user.is_anonymous else False
+            ).exists()
 
 
 class AddIngredientSerializer(serializers.ModelSerializer):
@@ -162,16 +162,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def add_tags(self, tags, recipe):
         for tag in tags:
             recipe.tags.add(tag)
-
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     author = self.context.get('request').user
-    #     tags = validated_data.pop('tags')
-    #     ingredients = validated_data.pop('ingredients')
-    #     recipe = Recipe.objects.create(author=author, **validated_data)
-    #     self.add_tags(tags, recipe)
-    #     self.add_ingredients(ingredients, recipe)
-    #     return recipe
 
     @transaction.atomic
     def create(self, validated_data):
